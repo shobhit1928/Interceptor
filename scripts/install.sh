@@ -36,6 +36,7 @@ profile_root_for() {
     Darwin:vivaldi)            echo "$HOME/Library/Application Support/Vivaldi" ;;
     Linux:brave)               echo "$HOME/.config/BraveSoftware/Brave-Browser" ;;
     Linux:chrome)              echo "$HOME/.config/google-chrome" ;;
+    Linux:chromium)            echo "$HOME/.config/chromium" ;;
     *) return 1 ;;
   esac
 }
@@ -58,6 +59,7 @@ nm_dir_for() {
     Darwin:vivaldi)            echo "$HOME/Library/Application Support/Vivaldi/NativeMessagingHosts" ;;
     Linux:brave)               echo "$HOME/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts" ;;
     Linux:chrome)              echo "$HOME/.config/google-chrome/NativeMessagingHosts" ;;
+    Linux:chromium)            echo "$HOME/.config/chromium/NativeMessagingHosts" ;;
     *) return 1 ;;
   esac
 }
@@ -77,6 +79,8 @@ browser_installed() {
                   || command -v brave >/dev/null 2>&1 ) && echo 1 || echo 0 ;;
     Linux:chrome)   ( command -v google-chrome >/dev/null 2>&1 \
                   || command -v google-chrome-stable >/dev/null 2>&1 ) && echo 1 || echo 0 ;;
+    Linux:chromium) ( command -v chromium >/dev/null 2>&1 \
+                  || command -v chromium-browser >/dev/null 2>&1 ) && echo 1 || echo 0 ;;
     *) echo 0 ;;
   esac
 }
@@ -103,6 +107,11 @@ browser_bin_for() {
     Linux:chrome)
       if command -v google-chrome >/dev/null 2>&1; then echo google-chrome
       elif command -v google-chrome-stable >/dev/null 2>&1; then echo google-chrome-stable
+      else return 1; fi
+      ;;
+    Linux:chromium)
+      if command -v chromium >/dev/null 2>&1; then echo chromium
+      elif command -v chromium-browser >/dev/null 2>&1; then echo chromium-browser
       else return 1; fi
       ;;
     *) return 1 ;;
@@ -146,6 +155,7 @@ while [[ $i -le $# ]]; do
     --skip-extension) SKIP_EXTENSION=1 ;;
     --brave)              BROWSER="brave" ;;
     --chrome)             BROWSER="chrome" ;;
+    --chromium)           BROWSER="chromium" ;;
     --chrome-beta)        BROWSER="chrome-beta" ;;
     --chrome-canary)      BROWSER="chrome-canary" ;;
     --chrome-dev)         BROWSER="chrome-dev" ;;
@@ -182,6 +192,7 @@ while [[ $i -le $# ]]; do
        echo "                    ScreenCaptureKit + Apple Events). macOS only."
        echo ""
        echo "Browser:"
+       echo "  --chromium             Target Chromium (Linux / Kali Linux)"
        echo "  --brave                Target Brave Browser"
        echo "  --chrome               Target Google Chrome (stable)"
        echo "  --chrome-beta          Target Google Chrome Beta (macOS only in this revision)"
@@ -293,6 +304,7 @@ fi
 # only — preserved from the upstream contract).
 if [[ -z "$BROWSER" ]]; then
   CHROME_INSTALLED=$(browser_installed chrome)
+  CHROMIUM_INSTALLED=$(browser_installed chromium)
   CHROME_BETA_INSTALLED=$(browser_installed chrome-beta)
   CHROME_CANARY_INSTALLED=$(browser_installed chrome-canary)
   CHROME_DEV_INSTALLED=$(browser_installed chrome-dev)
@@ -300,20 +312,22 @@ if [[ -z "$BROWSER" ]]; then
   BRAVE_INSTALLED=$(browser_installed brave)
   EDGE_INSTALLED=$(browser_installed edge)
   VIVALDI_INSTALLED=$(browser_installed vivaldi)
-  TOTAL_INSTALLED=$(( CHROME_INSTALLED + CHROME_BETA_INSTALLED + CHROME_CANARY_INSTALLED \
+  TOTAL_INSTALLED=$(( CHROME_INSTALLED + CHROMIUM_INSTALLED + CHROME_BETA_INSTALLED + CHROME_CANARY_INSTALLED \
                     + CHROME_DEV_INSTALLED + CHROME_FOR_TESTING_INSTALLED \
                     + BRAVE_INSTALLED + EDGE_INSTALLED + VIVALDI_INSTALLED ))
 
   if (( TOTAL_INSTALLED == 0 )); then
     echo "ERROR: No supported browser found." >&2
-    echo "       Install Chrome (stable/Beta/Canary/Dev/for-Testing), Brave, Edge, or Vivaldi, then re-run." >&2
+    echo "       Install Chromium, Chrome (stable/Beta/Canary/Dev/for-Testing), Brave, Edge, or Vivaldi, then re-run." >&2
     exit 1
   fi
 
   # First installed browser in priority order — the non-interactive default and the
   # interactive prompt default, so we never default to a browser that isn't actually
-  # installed (e.g. stable Chrome on a Beta-only host).
-  if   [[ "$CHROME_INSTALLED"             == "1" ]]; then DEFAULT_BROWSER="chrome"
+  # installed. On Linux / Kali Linux, check chromium then chrome then brave.
+  if   [[ "$PLATFORM" == "Linux" && "$CHROMIUM_INSTALLED" == "1" ]]; then DEFAULT_BROWSER="chromium"
+  elif [[ "$CHROME_INSTALLED"             == "1" ]]; then DEFAULT_BROWSER="chrome"
+  elif [[ "$CHROMIUM_INSTALLED"           == "1" ]]; then DEFAULT_BROWSER="chromium"
   elif [[ "$CHROME_BETA_INSTALLED"        == "1" ]]; then DEFAULT_BROWSER="chrome-beta"
   elif [[ "$CHROME_CANARY_INSTALLED"      == "1" ]]; then DEFAULT_BROWSER="chrome-canary"
   elif [[ "$CHROME_DEV_INSTALLED"         == "1" ]]; then DEFAULT_BROWSER="chrome-dev"
@@ -332,6 +346,7 @@ if [[ -z "$BROWSER" ]]; then
   else
     echo ""
     echo "Choose target browser:"
+    [[ "$CHROMIUM_INSTALLED"           == "1" ]] && echo "  chromium            Chromium (Linux / Kali Linux)"
     [[ "$CHROME_INSTALLED"             == "1" ]] && echo "  chrome              Google Chrome (stable)"
     [[ "$CHROME_BETA_INSTALLED"        == "1" ]] && echo "  chrome-beta         Google Chrome Beta"
     [[ "$CHROME_CANARY_INSTALLED"      == "1" ]] && echo "  chrome-canary       Google Chrome Canary"
@@ -345,7 +360,7 @@ if [[ -z "$BROWSER" ]]; then
     read -r -p "Browser (default: $DEFAULT_BROWSER): " ANSWER
     ANSWER="${ANSWER:-$DEFAULT_BROWSER}"
     case "$ANSWER" in
-      chrome|chrome-beta|chrome-canary|chrome-dev|chrome-for-testing|brave|edge|vivaldi|both) BROWSER="$ANSWER" ;;
+      chromium|chrome|chrome-beta|chrome-canary|chrome-dev|chrome-for-testing|brave|edge|vivaldi|both) BROWSER="$ANSWER" ;;
       *)
         echo "Unrecognized browser '$ANSWER'." >&2
         exit 1 ;;
@@ -379,6 +394,7 @@ fi
 echo "==> [browser] Installing native messaging symlink(s)..."
 NM_DIRS=()
 case "$BROWSER" in
+  chromium)           NM_DIRS+=("$(nm_dir_for chromium)") ;;
   chrome)             NM_DIRS+=("$(nm_dir_for chrome)") ;;
   chrome-beta)        NM_DIRS+=("$(nm_dir_for chrome-beta)") ;;
   chrome-canary)      NM_DIRS+=("$(nm_dir_for chrome-canary)") ;;
@@ -416,6 +432,7 @@ for dir in "${NM_DIRS[@]}"; do
       *Google/Chrome\ Canary*)           echo "    Chrome Canary:      $dir/com.interceptor.host.json" ;;
       *Google/Chrome\ Dev*)              echo "    Chrome Dev:         $dir/com.interceptor.host.json" ;;
       *Google/ChromeForTesting*|*Google/Chrome\ for\ Testing*) echo "    Chrome for Testing: $dir/com.interceptor.host.json" ;;
+      *chromium*)                        echo "    Chromium:           $dir/com.interceptor.host.json" ;;
       *Google/Chrome*|*google-chrome*)   echo "    Chrome:             $dir/com.interceptor.host.json" ;;
       *Brave-Browser*|*BraveSoftware*)   echo "    Brave:              $dir/com.interceptor.host.json" ;;
       *Microsoft\ Edge*)                 echo "    Edge:               $dir/com.interceptor.host.json" ;;
@@ -495,6 +512,7 @@ load_extension() {
   case "$target" in
     brave)              BROWSER_NAME="Brave" ;;
     chrome)             BROWSER_NAME="Chrome" ;;
+    chromium)           BROWSER_NAME="Chromium" ;;
     chrome-beta)        BROWSER_NAME="Chrome Beta" ;;
     chrome-canary)      BROWSER_NAME="Chrome Canary" ;;
     chrome-dev)         BROWSER_NAME="Chrome Dev" ;;
@@ -685,6 +703,9 @@ load_extension() {
 
   # Build launch args
   local LAUNCH_ARGS=(--load-extension="$EXTENSION_DIR")
+  if [[ "$PLATFORM" == "Linux" && "$(id -u 2>/dev/null || echo 1000)" == "0" ]]; then
+    LAUNCH_ARGS+=(--no-sandbox)
+  fi
   if [[ -n "$PROFILE" ]]; then
     LAUNCH_ARGS+=(--profile-directory="$PROFILE")
     echo "    Profile:   $PROFILE"
@@ -724,6 +745,7 @@ load_extension() {
     echo ""
     echo "    Verify in $BROWSER_NAME:"
     case "$target" in
+      chromium)                                                              echo "      1. Open chrome://extensions/" ;;
       brave)                                                                 echo "      1. Open brave://extensions/" ;;
       chrome|chrome-beta|chrome-canary|chrome-dev|chrome-for-testing)        echo "      1. Open chrome://extensions/" ;;
       edge)                                                                  echo "      1. Open edge://extensions/" ;;
@@ -741,7 +763,7 @@ load_extension() {
 }
 
 case "$BROWSER" in
-  chrome|chrome-beta|chrome-canary|chrome-dev|chrome-for-testing|brave|edge|vivaldi)
+  chromium|chrome|chrome-beta|chrome-canary|chrome-dev|chrome-for-testing|brave|edge|vivaldi)
     load_extension "$BROWSER" ;;
   both)
     load_extension chrome

@@ -51,6 +51,33 @@ const COMMAND_HELP: Record<string, string> = {
     "Example:",
     '  interceptor save --json --context main --tab 123 --out /tmp/clip.webm "window.__out.video"',
   ].join("\n"),
+  spider: [
+    "interceptor spider — dynamic web spider and crawler for deep asset & traffic discovery",
+    "",
+    "  interceptor spider <url> [options]         crawl site, click buttons, download code/chunks, capture traffic",
+    "  interceptor open <url> --spider [options]  sugar alias via compound open",
+    "",
+    "Flags:",
+    "  --max-depth <n>    link recursion depth (default: 2)",
+    "  --max-pages <n>    max unique pages to visit (default: 40)",
+    "  --delay <ms>       delay between actions to allow dynamic SPAs to settle (default: 500)",
+    "  --scope <s>        scope boundary: 'domain' (default), 'origin', or 'all'",
+    "  --out <dir>        local folder to save pages, scripts, chunks, endpoints, and traffic",
+    "  --no-download      skip downloading scripts and HTML snapshots to disk",
+    "  --no-buttons       skip clicking buttons on pages",
+    "  --all-buttons      click all buttons without filtering dangerous logout/delete buttons",
+    "  --activate         foreground the browser tab for live visual monitoring on screen",
+    "  --json             output machine-readable JSON summary",
+    "",
+    "Notes:",
+    "  - Drives the real browser session; cookies, logins, and credentials are automatically inherited.",
+    "  - Dynamically discovers and downloads JavaScript chunks from webpack runtimes and external domains.",
+    "  - Intercepts and records all network traffic into traffic.jsonl locally (no Burp/Caido required).",
+    "  - Mines all downloaded JavaScript for API routes and outputs endpoints.json / endpoints.txt.",
+    "",
+    "Example:",
+    "  interceptor spider https://example.com --scope domain --activate --out ./site-recon",
+  ].join("\n"),
 }
 
 // Per-command help — a curated COMMAND_HELP block when present, otherwise
@@ -253,6 +280,8 @@ Compound (agent-optimized):
   interceptor act <ref> --no-read            Skip post-action tree read
   interceptor inspect                        Tree + text + network log + headers
   interceptor inspect --net-only             Skip tree/text, return only network data
+  interceptor spider <url>                   Dynamic spider: click buttons, follow links, download code/chunks, capture traffic
+  interceptor open <url> --spider            Sugar alias to spider a URL during open
 
 Research (deep-research mode — local, no daemon, no browser):
   interceptor research                       Print the one-screen deep-research playbook + rubric

@@ -24,10 +24,11 @@ for arch in x64 arm64; do
   cp "$REPO_ROOT/daemon/com.interceptor.host.json" "$stage/daemon/com.interceptor.host.json"
   cp -R "$REPO_ROOT/extension/dist/." "$stage/extension/dist"
   cp "$REPO_ROOT/scripts/install.sh" "$stage/scripts/install.sh"
+  cp "$REPO_ROOT/scripts/install-kali.sh" "$stage/scripts/install-kali.sh"
   cp "$REPO_ROOT/scripts/uninstall.sh" "$stage/scripts/uninstall.sh"
   cp "$REPO_ROOT/README.md" "$REPO_ROOT/LICENSE" "$REPO_ROOT/package.json" "$stage/"
   printf '%s\n' "$VERSION" > "$stage/VERSION"
-  chmod 755 "$stage/dist/interceptor" "$stage/daemon/interceptor-daemon" "$stage/scripts/install.sh" "$stage/scripts/uninstall.sh"
+  chmod 755 "$stage/dist/interceptor" "$stage/daemon/interceptor-daemon" "$stage/scripts/install.sh" "$stage/scripts/install-kali.sh" "$stage/scripts/uninstall.sh"
   COPYFILE_DISABLE=1 tar --no-xattrs -czf "$RELEASE_DIR/$name.tar.gz" -C "$STAGE_ROOT" "$name"
 done
 

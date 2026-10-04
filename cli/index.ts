@@ -79,7 +79,7 @@ const DELEGATE_CMDS = new Set(["delegate"])
 const SCENE_CMDS = new Set(["scene"])
 const SSE_CMDS = new Set(["sse"])
 const BROWSER_CMDS = new Set(["browser"])
-const COMPOUND_CMDS = new Set(["open", "read", "act", "inspect", "websearch", "search"])
+const COMPOUND_CMDS = new Set(["open", "read", "act", "inspect", "websearch", "search", "spider"])
 const OVERRIDE_CMDS = new Set(["override"])
 const MACOS_CMDS = new Set(["macos"])
 const IOS_CMDS = new Set(["ios"])
@@ -266,7 +266,7 @@ async function main() {
   // browser-only install gets the upgrade hint instead of a bridge error.
   // On win32 `update` skips the gate — its dispatch branch prints the
   // Windows installer guidance instead of the macOS-only hint.
-  if (MACOS_CMDS.has(cmd) || IOS_CMDS.has(cmd) || (UPDATE_CMDS.has(cmd) && process.platform !== "win32")) {
+  if (MACOS_CMDS.has(cmd) || IOS_CMDS.has(cmd) || (UPDATE_CMDS.has(cmd) && process.platform === "darwin")) {
     const surfaces = detectSurfaces(args)
     const available = IOS_CMDS.has(cmd) ? surfaces.ios : surfaces.macos
     if (!available) {
@@ -280,9 +280,9 @@ async function main() {
   if (cmd !== "skills" && cmd !== "manifest") maybeEmitSkillsHint(args)
 
   let needsDaemon = !NO_DAEMON.has(cmd)
-  // win32 `update` prints static installer guidance — no daemon involved
+  // Non-macOS `update` prints static installer guidance — no daemon involved
   // (on macOS it routes through the daemon to the bridge's Sparkle updater).
-  if (UPDATE_CMDS.has(cmd) && process.platform === "win32") {
+  if (UPDATE_CMDS.has(cmd) && process.platform !== "darwin") {
     needsDaemon = false
   }
   if (cmd === "monitor" && filtered[1] && MONITOR_LOCAL_SUBCOMMANDS.has(filtered[1])) {
@@ -306,12 +306,18 @@ async function main() {
     // bridge that reports Sparkle's selected version, no-update result, or
     // error. `interceptor update status` passes through to the lifecycle state.
     //
-    // Windows has no Sparkle: updates ship as a signed installer (see
-    // docs/windows-install.md — run a newer architecture-matched Setup; the
-    // surface gate's macOS-only upgrade hint would be nonsense here).
+    // Windows and Linux have no Sparkle: updates ship as standalone packages or archives.
     if (process.platform === "win32") {
       const msg = {
         message: "Windows updates ship as a signed installer — download the latest Interceptor-Browser-<version>-windows-<arch>.exe and run Setup (upgrades preserve the install directory; downgrades are refused).",
+        releases: "https://github.com/Hacker-Valley-Media/Interceptor/releases",
+      }
+      console.log(jsonMode ? JSON.stringify({ success: true, data: msg }, null, 2) : `${msg.message}\n${msg.releases}`)
+      return
+    }
+    if (process.platform === "linux") {
+      const msg = {
+        message: "Linux / Kali Linux updates: download the latest Interceptor-Browser-<version>-linux-<arch>.tar.gz or run 'git pull && bash scripts/install.sh --browser-only'.",
         releases: "https://github.com/Hacker-Valley-Media/Interceptor/releases",
       }
       console.log(jsonMode ? JSON.stringify({ success: true, data: msg }, null, 2) : `${msg.message}\n${msg.releases}`)

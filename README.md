@@ -78,10 +78,17 @@ On **Linux**, extract the architecture-matched archive and run this from its dir
 ```bash
 bash scripts/install.sh --browser-only --brave
 # For Chrome, use --chrome instead of --brave.
+# For Chromium, use --chromium.
 ./dist/interceptor open "https://example.com"
 ```
 
 Follow the installer's extension-loading instructions. The archive includes compiled binaries, so a separate Bun installation is not needed for this release path.
+
+On **Kali Linux** and other Debian-based distributions, a dedicated installer handles Chromium auto-installation, root/sudo detection, and native messaging setup:
+
+```bash
+sudo bash scripts/install-kali.sh
+```
 
 ### Your first browser task
 
@@ -137,7 +144,16 @@ interceptor group close browser-task
 
 To interact, use the current reference returned by `read` or `find`: `interceptor act <ref>` clicks it; `interceptor act <ref> "text"` enters text. Re-read after navigation or a stale-reference error, and check the resulting state after an action.
 
-[Browser command reference](.agents/skills/interceptor-browser/references/command-catalog.md) · [Rich-editor workflows](.agents/skills/interceptor-browser/workflows/rich-editor-workflows.md) · [Export capture](.agents/skills/interceptor-browser/references/blob-export-capture.md)
+### Dynamic web spidering
+
+Automated crawling that clicks every button, follows all links, downloads all code and webpack chunks (including external-domain assets), extracts API endpoints from JavaScript, and captures network traffic locally — no Burp or Caido required. Drives the real browser session with cookies and credentials inherited.
+
+```bash
+interceptor spider https://target.com --scope domain --activate
+interceptor open https://target.com --spider --out ./recon
+```
+
+[Browser command reference](.agents/skills/interceptor-browser/references/command-catalog.md) · [Rich-editor workflows](.agents/skills/interceptor-browser/workflows/rich-editor-workflows.md) · [Export capture](.agents/skills/interceptor-browser/references/blob-export-capture.md) · [Spider workflow](.agents/skills/interceptor-browser/workflows/spider-web-application.md)
 
 <a id="macos"></a>
 

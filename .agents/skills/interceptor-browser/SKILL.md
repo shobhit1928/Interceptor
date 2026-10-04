@@ -66,12 +66,29 @@ If your harness truncates tool results, also set `INTERCEPTOR_TREE_MAX_CHARS` / 
 
 Inside this repo without `interceptor` on PATH, use `./dist/interceptor ...`.
 
+## Dynamic Web Spidering (`interceptor spider`)
+
+Used for automated security reconnaissance, bug bounty hunting, and dynamic web application discovery (as featured in DEF CON 34 Bug Bounty Village Masterclass):
+
+```bash
+interceptor spider <url> [options]
+interceptor open <url> --spider [options]
+```
+
+- **Clicks every button**: Executes clicks across buttons, submit inputs, and interactive components to reveal dynamic views, modals, hidden forms, and admin flows.
+- **Goes to every link**: Traverses all in-scope routes, SPA views, and forms.
+- **Parses & downloads all code**: Saves HTML snapshots, all scripts, source maps, and dynamically loaded JavaScript chunks (including chunks loaded from external domains / CDNs).
+- **Captures all traffic locally**: Intercepts requests & responses directly into `traffic.jsonl` (no Burp/Caido proxy setup required).
+- **Extracts API endpoints**: Analyzes JavaScript code for REST routes, GraphQL queries, and API paths.
+- **Visual driving**: Pass `--activate` (or `--visual`) to watch Interceptor live drive the target in your browser on another monitor.
+
 ## Workflows
 
 Each workflow is a complete self-contained "you are doing X" procedure. Open the file when the task matches.
 
 | Workflow | When to invoke |
 |---|---|
+| [`workflows/spider-web-application.md`](workflows/spider-web-application.md) | Dynamic web crawler & spider — click buttons, follow links, download code & chunks, capture traffic |
 | [`workflows/verify-deploy.md`](workflows/verify-deploy.md) | "Verify the deploy", "check that X works on the page", reproducing a bug before touching code |
 | [`workflows/read-and-extract.md`](workflows/read-and-extract.md) | Compound page read + SPA state extraction — pull a specific value off a page |
 | [`workflows/drive-rich-editor.md`](workflows/drive-rich-editor.md) | Canva, Google Docs, Google Slides, design-tool layer manipulation — anything where DOM refs aren't enough |

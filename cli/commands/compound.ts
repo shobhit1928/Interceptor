@@ -195,6 +195,12 @@ export async function runOpen(
     process.exit(1)
   }
 
+  if (filtered.includes("--spider")) {
+    const { runSpiderCommand } = await import("./spider")
+    await runSpiderCommand(filtered, { jsonMode, useWs, globalTabId, contextId })
+    return
+  }
+
   const treeOnly = filtered.includes("--tree-only")
   const textOnly = filtered.includes("--text-only")
   const markdown = filtered.includes("--markdown")
@@ -883,6 +889,10 @@ export async function runCompoundCommand(
     case "read":    return runRead(filtered, opts.globalTabId, opts.jsonMode, opts.useWs, opts.contextId)
     case "act":     return runAct(filtered, opts.globalTabId, opts.jsonMode, opts.useWs, opts.contextId, opts.positionalCount)
     case "inspect":  return runInspect(filtered, opts.globalTabId, opts.jsonMode, opts.useWs, opts.contextId)
+    case "spider": {
+      const { runSpiderCommand } = await import("./spider")
+      return runSpiderCommand(filtered, { jsonMode: opts.jsonMode, useWs: opts.useWs, globalTabId: opts.globalTabId, contextId: opts.contextId })
+    }
     default:
       console.error(`error: unknown compound command '${cmd}'`)
       process.exit(1)

@@ -45,6 +45,15 @@ export function daemonBinaryCandidates(options: DaemonBinaryCandidateOptions = {
   if (platform === "darwin") {
     candidates.push(MACOS_PKG_DAEMON_PATH)
   }
+  if (platform === "linux") {
+    candidates.push("/usr/local/lib/interceptor/daemon/interceptor-daemon")
+    candidates.push("/usr/local/bin/interceptor-daemon")
+    const home = process.env.HOME || ""
+    if (home) {
+      candidates.push(join(home, ".local/share/interceptor/daemon/interceptor-daemon"))
+      candidates.push(join(home, ".local/bin/interceptor-daemon"))
+    }
+  }
   return [...new Set(candidates)]
 }
 
