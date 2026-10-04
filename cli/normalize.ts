@@ -137,7 +137,7 @@ const VALUE_FLAGS_BY_CMD: Record<string, string[]> = {
 // `act --trusted` while help advertised it). The reverse-direction block in
 // test/strict-flags.test.ts now re-harvests module sources over every
 // consumption pattern, so keep it in sync when adding a family here.
-const COMPOUND_BOOL = ["--activate", "--append", "--full", "--include-frames", "--include-style", "--markdown", "--net-only", "--no-read", "--no-reuse", "--no-wait", "--os", "--reuse", "--text-only", "--tree-only", "--trusted"]
+const COMPOUND_BOOL = ["--activate", "--append", "--full", "--include-frames", "--include-style", "--markdown", "--net-only", "--no-read", "--no-reuse", "--no-wait", "--os", "--reuse", "--spider", "--text-only", "--tree-only", "--trusted"]
 const STATE_BOOL = ["--elements-only", "--full", "--include-frames", "--markdown", "--native", "--text-only"]
 const ACTIONS_BOOL = ["--append", "--dropzone", "--picker", "--trusted", "--os", "--user"]
 const TABS_BOOL = ["--incognito"]
